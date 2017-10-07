@@ -1,0 +1,17 @@
+package: github.com/pintobikez/authentication-service
+import:
+- package: github.com/stretchr/testify
+  version: ^1.1.4
+  subpackages:
+  - assert
+- package: github.com/coreos/go-systemd/activation
+- package: github.com/dafiti/go-instrument
+- package: github.com/garyburd/redigo/redis
+- package: github.com/labstack/echo
+- package: github.com/labstack/echo/middleware
+- package: github.com/labstack/gommon/color
+- package: github.com/labstack/gommon/log
+- package: github.com/google/uuid
+- package: gopkg.in/ldap.v2
+- package: gopkg.in/urfave/cli.v1
+- package: gopkg.in/yaml.v2

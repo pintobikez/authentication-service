@@ -1,0 +1,11 @@
+baseDN: "DC=company,DC=local"
+bindDN: "%s@company"
+userFilter: "(sAMAccountName=%s)"
+groupFilter: "(&(member=%s)(objectClass=group))"
+host: "10.30.20.15"
+port: 389
+servername: ldapCompany
+useSSL: false
+skipTLS: true
+ssl-cert: 
+ssl-key: 

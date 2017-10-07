@@ -1,0 +1,7 @@
+/vendor
+/build
+glide.lock
+check
+auth-service.sublime-workspace
+main
+*.log

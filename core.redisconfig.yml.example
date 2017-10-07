@@ -1,0 +1,7 @@
+mode: "tcp"
+host: "172.31.0.1"
+port: 6379
+ttl: 900
+ttlapi: 661380
+tokenkey: "%s@@%s@@%s"
+apikey: "serviceapikey@@%s"

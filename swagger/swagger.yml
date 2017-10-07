@@ -1,0 +1,196 @@
+swagger: '2.0'
+info:
+  description: Authentication service is a small app to check if a user can login in Dafiti's LDAP
+  version: 0.0.1
+  title: Authentication Service
+externalDocs:
+  description: You can read more about the project in Confluence
+  url: 'https://dafiti.jira.com/wiki/display/DFTEC/Authentication'
+host: authentication.dafiti.io
+tags:
+  - name: health
+    description: Healthcheck information
+  - name: authenticate
+    description: Performs user authentication
+  - name: token
+    description: Verifies if user token exists (renews ttl) or is active
+schemes:
+  - http
+paths:
+  /health:
+    get:
+      tags:
+        - health
+      summary: Check api health
+      description: Retrieve the information about the application health
+      responses:
+        '200':
+          description: Successful Operation
+          schema:
+            $ref: '#/definitions/HealthStatus'
+  /authenticate:
+    post:
+      tags:
+        - authenticate
+      summary: Performs user Login
+      description: |
+        Performs user Login
+      parameters:
+        - name: username
+          in: body
+          type: string
+          required: true
+          description: Username to perfom login
+        - name: password
+          in: body
+          type: string
+          required: true
+          description: Encrypted user password
+        - name: service
+          in: body
+          type: string
+          required: true
+          description: The service that is performing the login
+        - name: page
+          in: body
+          type: array
+          required: false
+          description: The groups to validate
+      responses:
+        '200':
+          description: Authentication ok plus user groups
+          schema:
+            $ref: '#/definitions/AuthenticationResult'
+        '400':
+          description: Incorrect JSON Format
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '500':
+          description: Internal APP errors
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '503':
+          description: Service unavailable when something went wrong with our app
+          schema:
+            $ref: '#/definitions/ErrorResult'
+/validate:
+    post:
+      tags:
+        - token
+      summary: Verifies if user token exists or is active
+      description: |
+        Verifies if user token exists or is active
+      parameters:
+        - name: username
+          in: body
+          type: string
+          required: true
+          description: Username to check the token
+        - name: token
+          in: body
+          type: string
+          required: true
+          description: The token to validate
+        - name: service
+          in: body
+          type: string
+          required: true
+          description: The service that is checking the token
+      responses:
+        '200':
+          description: Token found and valid
+          schema:
+            $ref: '#/definitions/TokenResult'
+        '400':
+          description: Incorrect JSON Format
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '404':
+          description: Token not found
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '500':
+          description: Internal APP errors
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '503':
+          description: Service unavailable when something went wrong with our app
+          schema:
+            $ref: '#/definitions/ErrorResult'
+definitions:
+  ErrorResult:
+    type: object
+    properties:
+      error:
+        type: object
+        properties:
+          code:
+            type: integer
+            description: Error code
+          message:
+            type: string
+            description: Error message
+  HealthStatus:
+    type: object
+    properties:
+      ldap:
+        type: array
+        description: Ldap service status
+        items:
+          $ref: '#/definitions/HealthStatusDetail'
+      redis:
+        type: array
+        description: Redis service status
+        items:
+          $ref: '#/definitions/HealthStatusDetail'
+      security:
+        type: array
+        description: Security configuration status
+        items:
+          $ref: '#/definitions/HealthStatusDetail'
+      services:
+  HealthStatusDetail:
+    type: object
+    properties:
+      status:
+        type: string
+        description: Service status
+        enum:
+          - Available
+          - Unavailable
+      detail:
+        type: string
+        description: Details about unavailability
+  AuthenticationResult:
+    type: object
+    properties:
+      loginok:
+        type: boolean
+        description: If the login went ok
+      error_message:
+        type: string
+        description: If some error happened
+      token_object:
+        type: TokenResult
+        description: The user token object
+      groups:
+        type: array
+        description: An array of strings containing the names of the groups that the user belongs to
+  TokenResult:
+    type: object
+    properties:
+      username:
+        type: string
+        description: The username in question
+      service:
+        type: string
+        description: The service that created the Token
+      token:
+        type: string
+        description: The token value
+      created:
+        type: string
+        description: Date in UTC (RFC3339 format) when the token was created
+      ttl:
+        type: string
+        description: the duration of the token in seconds
