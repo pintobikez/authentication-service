@@ -1,6 +1,13 @@
 package main
 
 import (
+	"context"
+	middleware "github.com/dafiti/echo-middleware"
+	inst "github.com/dafiti/go-instrument"
+	"github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
+	"github.com/labstack/gommon/color"
+	"github.com/labstack/gommon/log"
 	"github.com/pintobikez/authentication-service/api"
 	uti "github.com/pintobikez/authentication-service/config"
 	strut "github.com/pintobikez/authentication-service/config/structures"
@@ -9,13 +16,6 @@ import (
 	"github.com/pintobikez/authentication-service/redis"
 	"github.com/pintobikez/authentication-service/secure"
 	srv "github.com/pintobikez/authentication-service/server"
-	"context"
-	middleware "github.com/dafiti/echo-middleware"
-	inst "github.com/dafiti/go-instrument"
-	"github.com/labstack/echo"
-	mw "github.com/labstack/echo/middleware"
-	"github.com/labstack/gommon/color"
-	"github.com/labstack/gommon/log"
 	"gopkg.in/urfave/cli.v1"
 	"os"
 	"os/signal"
@@ -86,21 +86,24 @@ func Handler(c *cli.Context) error {
 	a := &api.API{Ldap: ldapC, Redis: redisC, Secure: securC}
 
 	// Routes => api
-	e.POST("/authenticate", a.Authenticate())
-	e.Use(mw.CORSWithConfig(
+	e.POST("/authenticate", a.Authenticate(), mw.CORSWithConfig(
 		mw.CORSConfig{
 			AllowOrigins: []string{"*"},
 			AllowMethods: []string{echo.GET, echo.OPTIONS, echo.HEAD},
 		},
 	))
-	e.POST("/validate", a.Validate())
-	e.Use(mw.CORSWithConfig(
+	e.POST("/validate", a.Validate(), mw.CORSWithConfig(
 		mw.CORSConfig{
 			AllowOrigins: []string{"*"},
 			AllowMethods: []string{echo.POST, echo.OPTIONS, echo.HEAD},
 		},
 	))
-	e.GET("/health", a.HealthStatus())
+	e.GET("/health", a.HealthStatus(), mw.CORSWithConfig(
+		mw.CORSConfig{
+			AllowOrigins: []string{"*"},
+			AllowMethods: []string{echo.GET, echo.OPTIONS, echo.HEAD},
+		},
+	))
 
 	if c.String("revision-file") != "" {
 		e.File("/rev.txt", c.String("revision-file"))

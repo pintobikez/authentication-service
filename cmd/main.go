@@ -48,19 +48,19 @@ func main() {
 			EnvVar: "REVISION_FILE",
 		},
 		cli.StringFlag{
-			Name:   "ldap-file",
+			Name:   "ldap-file, secf",
 			Value:  "",
 			Usage:  "LDAP configuration used by the Service to connect to the corporate LDAP",
 			EnvVar: "LDAP_FILE",
 		},
 		cli.StringFlag{
-			Name:   "security-file",
+			Name:   "security-file, sf",
 			Value:  "",
 			Usage:  "Security configuration",
 			EnvVar: "SECURITY_FILE",
 		},
 		cli.StringFlag{
-			Name:   "redis-file",
+			Name:   "redis-file, rf",
 			Value:  "",
 			Usage:  "Redis configuration",
 			EnvVar: "REDIS_FILE",

@@ -1,10 +1,10 @@
 package mocks
 
 import (
-	cnf "github.com/pintobikez/authentication-service/config/structures"
-	. "github.com/pintobikez/authentication-service/secure/structures"
 	"fmt"
 	rlib "github.com/garyburd/redigo/redis"
+	cnf "github.com/pintobikez/authentication-service/config/structures"
+	. "github.com/pintobikez/authentication-service/secure/structures"
 )
 
 // MOCK STRUCTURES DEFINITION
@@ -54,13 +54,13 @@ func (c *ClientRedisTest) Connect() (rlib.Conn, error) {
 func (c *ClientRedisTest) GetConfig() *cnf.RedisConfig {
 	return &cnf.RedisConfig{APIKey: "serviceapikey@@%s", TokenKey: "token@@%s@@%s@@%s"}
 }
-func (c *ClientRedisTest) FindAPIKey(key string) (string, error) {
+func (c *ClientRedisTest) FindString(key string) (string, error) {
 	if c.IserrorAPI {
 		return "", nil
 	}
 	return "A12345", nil
 }
-func (c *ClientRedisTest) CreateAPIKey(key string, value string) error {
+func (c *ClientRedisTest) CreateString(key string, value string) error {
 	return nil
 }
 func (c *ClientRedisTest) FindKey(key string, s *TokenClaims) error {

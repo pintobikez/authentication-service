@@ -1,11 +1,11 @@
 package redis
 
 import (
-	cnf "github.com/pintobikez/authentication-service/config/structures"
-	sec "github.com/pintobikez/authentication-service/secure/structures"
 	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	cnf "github.com/pintobikez/authentication-service/config/structures"
+	sec "github.com/pintobikez/authentication-service/secure/structures"
 )
 
 type Client struct {
@@ -77,7 +77,7 @@ func (r *Client) CreateKey(key string, s *sec.TokenClaims) error {
 	return nil
 }
 
-func (r *Client) FindAPIKey(key string) (string, error) {
+func (r *Client) FindString(key string) (string, error) {
 
 	c, err := r.Connect()
 	// Error connecting to redis
@@ -95,7 +95,7 @@ func (r *Client) FindAPIKey(key string) (string, error) {
 	return string(reply.([]byte)), nil
 }
 
-func (r *Client) CreateAPIKey(key string, value string) error {
+func (r *Client) CreateString(key string, value string) error {
 
 	c, err := r.Connect()
 	// Error connecting to redis

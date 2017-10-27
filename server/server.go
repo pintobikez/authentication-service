@@ -5,9 +5,11 @@ import (
 	"github.com/labstack/echo"
 )
 
-type Server struct {
-	*echo.Echo
-}
+type (
+	Server struct {
+		*echo.Echo
+	}
+)
 
 // Start starts an HTTP server.
 func (srv *Server) Start(address string) error {

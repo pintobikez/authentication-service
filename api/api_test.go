@@ -1,12 +1,12 @@
 package api
 
 import (
+	"encoding/json"
+	"github.com/labstack/echo"
 	apis "github.com/pintobikez/authentication-service/api/structures"
 	strut "github.com/pintobikez/authentication-service/config/structures"
 	"github.com/pintobikez/authentication-service/ldap"
 	"github.com/pintobikez/authentication-service/mocks"
-	"encoding/json"
-	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -39,25 +39,24 @@ func TestValidateGroups(t *testing.T) {
 Data Provider for Validate method
 */
 type validateProvider struct {
-	method string
-	value  string
-	erro   string
-	json   string
-	result int
+	method  string
+	value   string
+	erro    string
+	token   string
+	service string
+	result  int
 }
 
 var testValidateProvider = []validateProvider{
-	{echo.POST, "/validate", "", "", http.StatusBadRequest},                                                        // invalid json
-	{echo.POST, "/validate", "", `{"token":"A","service":"A"}`, http.StatusBadRequest},                             // no username in json
-	{echo.POST, "/validate", "", `{"username":"A","service":"A"}`, http.StatusBadRequest},                          // no token in json
-	{echo.POST, "/validate", "", `{"username":"A","token":"A"}`, http.StatusBadRequest},                            // no service in json
-	{echo.POST, "/validate", "rdis", `{"username":"A","token":"C","service":"A"}`, http.StatusInternalServerError}, // redis key not found
-	{echo.POST, "/validate", "token", `{"username":"T","token":"T","service":"T"}`, http.StatusNotFound},           // validate token error
-	{echo.POST, "/validate", "user", `{"username":"T","token":"T","service":"T"}`, http.StatusNotFound},            // validate consistency error
-	{echo.POST, "/validate", "", `{"username":"T","token":"T","service":"T"}`, http.StatusNotFound},                // validate token error
-	{echo.POST, "/validate", "keyc", `{"username":"V","token":"V","service":"V"}`, http.StatusInternalServerError}, // error creating key in redis
-	{echo.POST, "/validate", "apit", `{"username":"V","token":"T","service":"V"}`, http.StatusForbidden},           // API Key not found
-	{echo.POST, "/validate", "", `{"username":"V","token":"T","service":"V"}`, http.StatusOK},                      // OK
+	{echo.POST, "/validate", "", "", "", http.StatusBadRequest},       // token empty
+	{echo.POST, "/validate", "", "A", "", http.StatusBadRequest},      // service empty
+	{echo.POST, "/validate", "rdis", "C", "A", http.StatusForbidden},  // redis key not found
+	{echo.POST, "/validate", "token", "T", "T", http.StatusForbidden}, // validate token error
+	{echo.POST, "/validate", "user", "T", "T", http.StatusForbidden},  // validate consistency error
+	{echo.POST, "/validate", "", "T", "T", http.StatusForbidden},      // validate token error
+	{echo.POST, "/validate", "keyc", "V", "V", http.StatusForbidden},  // error creating key in redis
+	{echo.POST, "/validate", "apit", "T", "V", http.StatusForbidden},  // API Key not found
+	{echo.POST, "/validate", "", "T", "V", http.StatusOK},             // OK
 }
 
 /*
@@ -93,12 +92,13 @@ func TestValidate(t *testing.T) {
 		e := echo.New()
 		e.POST("/validate", a.Validate())
 		rec := httptest.NewRecorder()
-		req := httptest.NewRequest(pair.method, pair.value, strings.NewReader(pair.json))
-		req.Header.Set("Content-Type", "application/json")
+		req := httptest.NewRequest(pair.method, pair.value, nil)
+		req.Header.Set("Authorization", pair.token)
+		req.Header.Set("AuthorizationRequestBy", pair.service)
 
 		e.ServeHTTP(rec, req)
 		// Assertions
-		assert.Equal(t, pair.result, rec.Code)
+		assert.Equal(t, rec.Code, pair.result)
 	}
 }
 
@@ -121,7 +121,7 @@ var testAuthenticationProvider = []authenticationProvider{
 	{echo.POST, "/authenticate", "", `{"username":"A","password":"A","service":"A"}`, http.StatusBadRequest},                              // no group in json
 	{echo.POST, "/authenticate", "ldap", `{"username":"A","password":"A","service":"A", "groups":["A"]}`, http.StatusInternalServerError}, // error in Ldap Connect
 	{echo.POST, "/authenticate", "sec", `{"username":"A","password":"A","service":"A", "groups":["A"]}`, http.StatusInternalServerError},  // error in Decrypt
-	{echo.POST, "/authenticate", "", `{"username":"B","password":"A","service":"A", "groups":["A"]}`, http.StatusInternalServerError},     // error in Auth LDAP
+	{echo.POST, "/authenticate", "", `{"username":"B","password":"A","service":"A", "groups":["A"]}`, http.StatusForbidden},               // error in Auth LDAP
 	{echo.POST, "/authenticate", "", `{"username":"C","password":"A","service":"A", "groups":["A"]}`, http.StatusInternalServerError},     // error in Groups LDAP
 	{echo.POST, "/authenticate", "rdis", `{"username":"D","password":"A","service":"A", "groups":["A"]}`, http.StatusInternalServerError}, // error creating key in redis
 	{echo.POST, "/authenticate", "apit", `{"username":"A","password":"A","service":"D", "groups":["A"]}`, http.StatusForbidden},           // API Key not found

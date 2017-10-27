@@ -2,6 +2,7 @@
 /build
 glide.lock
 check
+handler
 auth-service.sublime-workspace
 main
 *.log

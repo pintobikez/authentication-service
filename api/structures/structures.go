@@ -1,11 +1,5 @@
 package structures
 
-type TokenRequest struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-	Service  string `json:"service"`
-}
-
 type AuthenticateRequest struct {
 	Username string   `json:"username"`
 	Password string   `json:"password"`

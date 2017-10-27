@@ -1,12 +1,12 @@
 package main
 
 import (
-	uti "github.com/pintobikez/authentication-service/config"
-	strut "github.com/pintobikez/authentication-service/config/structures"
-	"github.com/pintobikez/authentication-service/redis"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/gommon/color"
+	uti "github.com/pintobikez/authentication-service/config"
+	strut "github.com/pintobikez/authentication-service/config/structures"
+	"github.com/pintobikez/authentication-service/redis"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -28,7 +28,7 @@ func Register(c *cli.Context) error {
 
 	k := fmt.Sprintf(redisCnf.APIKey, sName)
 	fmt.Printf("%s \n", k)
-	v, err := redisC.FindAPIKey(k)
+	v, err := redisC.FindString(k)
 	if err != nil {
 		printErrorAndExit(err)
 	}
@@ -44,7 +44,7 @@ func Register(c *cli.Context) error {
 	}
 
 	//Save the Key to REDIS
-	if err := redisC.CreateAPIKey(k, vt.String()); err != nil {
+	if err := redisC.CreateString(k, vt.String()); err != nil {
 		printErrorAndExit(err)
 	}
 

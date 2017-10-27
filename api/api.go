@@ -1,13 +1,12 @@
 package api
 
 import (
+	"fmt"
+	"github.com/labstack/echo"
 	strut "github.com/pintobikez/authentication-service/api/structures"
 	ldap "github.com/pintobikez/authentication-service/ldap"
 	redis "github.com/pintobikez/authentication-service/redis"
 	sec "github.com/pintobikez/authentication-service/secure/structures"
-	"fmt"
-	"github.com/labstack/echo"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -19,13 +18,14 @@ type API struct {
 }
 
 const (
+	HeaderService        = "AuthorizationRequestBy"
 	ErrorUserNotInGroups = "None of the User Groups are valid"
 	StatusAvailable      = "Available"
 	StatusUnavailable    = "Unavailable"
 	IsEmpty              = "%s is empty"
 	ErrorGroups          = "Error retrieving groups"
 	TokenNotFound        = "Token not found for service: %s"
-	ServiceNotRegistered = "Service %s is not registered, please contact us in order to register"
+	ServiceNotRegistered = "Service %s is not registered, please contact admin team in order to register"
 	TokenInvalid         = "The provided Token is invalid"
 )
 
@@ -59,56 +59,39 @@ func (a *API) HealthStatus() echo.HandlerFunc {
 func (a *API) Validate() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		o := new(strut.TokenRequest)
-		// if is an invalid json format
-		if err := c.Bind(&o); err != nil {
-			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, err.Error()})
-		}
-
-		if o.Username == "" {
-			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, "username")})
-		}
-		if o.Service == "" {
-			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, "service")})
-		}
-		if o.Token == "" {
+		token := c.Request().Header.Get(echo.HeaderAuthorization)
+		if token == "" {
 			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, "token")})
+		}
+		service := c.Request().Header.Get(HeaderService)
+		if service == "" {
+			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, "service")})
 		}
 
 		//check if the API Key exist
-		k := fmt.Sprintf(a.Redis.GetConfig().APIKey, o.Service)
-		cipherKey, err := a.Redis.FindAPIKey(k)
+		k := fmt.Sprintf(a.Redis.GetConfig().APIKey, service)
+		cipherKey, err := a.Redis.FindString(k)
 		if err != nil || cipherKey == "" {
-			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusForbidden, fmt.Sprintf(ServiceNotRegistered, o.Service)})
-		}
-
-		// FIND TOKEN IN REDIS
-		key := fmt.Sprintf(a.Redis.GetConfig().TokenKey, o.Username, o.Service, o.Token)
-		tkObj := new(sec.TokenClaims)
-		if err := a.Redis.FindKey(key, tkObj); err != nil {
-			return c.JSON(http.StatusInternalServerError, &ErrContent{http.StatusInternalServerError, err.Error()})
-		}
-
-		if tkObj.Username == "" {
-			return c.JSON(http.StatusNotFound, &ErrContent{http.StatusNotFound, fmt.Sprintf(TokenNotFound, o.Service)})
+			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusForbidden, fmt.Sprintf(ServiceNotRegistered, service)})
 		}
 
 		//If found:
 		// 1 - VALIDATE TOKEN
-		tkObj, err = a.Secure.ValidateToken(o.Token, cipherKey)
+		tkObj, err := a.Secure.ValidateToken(token, cipherKey)
 		if err != nil {
-			return c.JSON(http.StatusNotFound, &ErrContent{http.StatusNotFound, err.Error()})
+			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusNotFound, err.Error()})
 		}
 
 		//Validate data consistency
-		if tkObj.Username != o.Username || tkObj.Service != o.Service {
-			return c.JSON(http.StatusNotFound, &ErrContent{http.StatusNotFound, fmt.Sprintf(TokenInvalid)})
+		if tkObj.Service != service {
+			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusNotFound, fmt.Sprintf(TokenInvalid)})
 		}
 
 		//2 - Refresh the TTL in Redis
+		key := fmt.Sprintf(a.Redis.GetConfig().TokenKey, tkObj.Username, service, token)
 		err = a.Redis.CreateKey(key, tkObj)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, &ErrContent{http.StatusInternalServerError, err.Error()})
+			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusNotFound, err.Error()})
 		}
 
 		return c.NoContent(http.StatusOK)
@@ -140,7 +123,7 @@ func (a *API) Authenticate() echo.HandlerFunc {
 
 		// FIND API TOKEN IN REDIS
 		k := fmt.Sprintf(a.Redis.GetConfig().APIKey, o.Service)
-		cipherKey, err := a.Redis.FindAPIKey(k)
+		cipherKey, err := a.Redis.FindString(k)
 		if err != nil || cipherKey == "" {
 			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusForbidden, fmt.Sprintf(ServiceNotRegistered, o.Service)})
 		}
@@ -154,7 +137,7 @@ func (a *API) Authenticate() echo.HandlerFunc {
 
 		// Error performing user authentication
 		if err := a.Ldap.Authenticate(o.Username, o.Password); err != nil {
-			return c.JSON(http.StatusInternalServerError, &ErrContent{http.StatusInternalServerError, err.Error()})
+			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusInternalServerError, err.Error()})
 		}
 		// Close LDAP connection
 		defer a.Ldap.Close()
@@ -198,7 +181,6 @@ func (a *API) validateGroups(validGroups []string, allGroups map[string]string) 
 
 	var grr = make([]string, 0)
 	for _, gr := range validGroups {
-		log.Printf("%s \n", gr)
 		gr := strings.ToUpper(gr)
 		if _, exists := allGroups[gr]; exists {
 			grr = append(grr, gr)

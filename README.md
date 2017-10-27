@@ -97,7 +97,7 @@ curl -v -X POST http://127.0.0.1:8080/authenticate -H 'content-type:application/
 ```
 # Check User Login
 ```
-curl -v -X POST http://127.0.0.1:8080/validate -H 'content-type:application/json' -d '{"username":"USERNAME","service":"SERVICENAME_CALLING_AUTH","token":["USER_TOKEN"]}'
+curl -v -X POST http://127.0.0.1:8080/validate -H 'AuthorizationRequestBy:SERVICENAME_CALLING_AUTH' -H 'Authorization:TOKEN'
 ```
 # Check Service Health
 ```
