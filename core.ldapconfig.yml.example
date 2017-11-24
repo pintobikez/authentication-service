@@ -1,6 +1,6 @@
 baseDN: "DC=company,DC=local"
 bindDN: "%s@company"
-userFilter: "(sAMAccountName=%s)"
+userFilter: "(&(sAMAccountName=%s)(!(UserAccountControl:1.2.840.113556.1.4.803:=2)))"
 groupFilter: "(&(member=%s)(objectClass=group))"
 host: "10.30.20.15"
 port: 389

@@ -87,20 +87,20 @@ func main() {
 
 	app.Commands = []cli.Command{
 		cli.Command{
-			Name:   "register",
-			Usage:  "Register a service and returns an API Key for the service",
-			Action: Register,
+			Name:      "register",
+			Usage:     "Register a service and returns an API Key for the service",
+			Action:    Register,
+			ArgsUsage: "[add] [remove]",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:   "service",
-					Usage:  "The name of the service to register",
-					Value:  "",
-					EnvVar: "service",
+					Name:  "service",
+					Usage: "The name of the `SERVICE` to register",
+					Value: "",
 				},
 				cli.StringFlag{
-					Name:   "redis-file",
+					Name:   "redis-file, rf",
 					Value:  "",
-					Usage:  "Redis configuration",
+					Usage:  "Redis configuration `FILE`",
 					EnvVar: "REDIS_FILE",
 				},
 			},
@@ -111,3 +111,15 @@ func main() {
 
 	app.Run(os.Args)
 }
+
+/*
+	Subcommands: []cli.Command{
+		{
+			Name:  "add",
+			Usage: "add a key",
+		},
+		{
+			Name:  "remove",
+			Usage: "remove a key",
+		},
+	},*/

@@ -1,9 +1,9 @@
 package ldap
 
 import (
-	cnf "github.com/pintobikez/authentication-service/config/structures"
 	"crypto/tls"
 	"fmt"
+	cnf "github.com/pintobikez/authentication-service/config/structures"
 	"gopkg.in/ldap.v2"
 	"strings"
 )
@@ -71,18 +71,18 @@ func (lc *Client) Close() {
 }
 
 // Authenticate authenticates the user against the ldap backend.
-func (lc *Client) Authenticate(username, password string) error {
+func (lc *Client) Authenticate(username, password string) (string, error) {
 	if lc.Conn != nil {
 		err := lc.Connect()
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	// Bind as the user to verify their password
 	err := lc.Conn.Bind(fmt.Sprintf(lc.Config.BindDN, username), password)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	attributes := []string{"cn"}
@@ -98,20 +98,20 @@ func (lc *Client) Authenticate(username, password string) error {
 	// Perform search for user in LDAP
 	sr, err := lc.Conn.Search(searchRequest)
 	if err != nil {
-		return nil
+		return "", nil
 	}
 
-	// Bind userDN
+	name := sr.Entries[0].GetAttributeValue("cn")
 	lc.UserDN = sr.Entries[0].DN
 	lc.IsBind = true
 
-	return nil
+	return name, nil
 }
 
 // GetGroupsOfUser returns the group for a user.
 func (lc *Client) GetGroupsOfUser(username string) (map[string]string, error) {
 
-	if !lc.IsBind || lc.UserDN == "" {
+	if !lc.IsBind {
 		return nil, fmt.Errorf("User %s is not Binded, please Login first", username)
 	}
 

@@ -51,6 +51,9 @@ func (c *ConnMock) Receive() (reply interface{}, err error) {
 func (c *ClientRedisTest) Connect() (rlib.Conn, error) {
 	return new(ConnMock), nil
 }
+func (r *ClientRedisTest) DeleteKey(key string) error {
+	return nil
+}
 func (c *ClientRedisTest) GetConfig() *cnf.RedisConfig {
 	return &cnf.RedisConfig{APIKey: "serviceapikey@@%s", TokenKey: "token@@%s@@%s@@%s"}
 }
@@ -123,11 +126,11 @@ func (c *ClientLdapTest) Connect() error {
 }
 func (c *ClientLdapTest) Close() {}
 
-func (c *ClientLdapTest) Authenticate(username, password string) error {
+func (c *ClientLdapTest) Authenticate(username, password string) (string, error) {
 	if username == "B" {
-		return fmt.Errorf("Error Auth")
+		return "", fmt.Errorf("Error Auth")
 	}
-	return nil
+	return "", nil
 }
 func (c *ClientLdapTest) GetGroupsOfUser(username string) (map[string]string, error) {
 

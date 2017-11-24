@@ -25,6 +25,24 @@ func (r *Client) Connect() (redis.Conn, error) {
 	return s, err
 }
 
+func (r *Client) DeleteKey(key string) error {
+
+	c, err := r.Connect()
+	// Error connecting to redis
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	// delete KEY to Redis
+	_, err = c.Do("DEL", key)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Client) FindKey(key string, s *sec.TokenClaims) error {
 
 	c, err := r.Connect()

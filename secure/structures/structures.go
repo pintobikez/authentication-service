@@ -11,6 +11,7 @@ type TokenManagerI interface {
 type TokenClaims struct {
 	Username string   `json:"username"`
 	Service  string   `json:"service"`
+	Name     string   `json:"name"`
 	Groups   []string `json:"groups"`
 	jwt.StandardClaims
 }

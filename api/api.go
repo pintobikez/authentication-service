@@ -61,11 +61,11 @@ func (a *API) Validate() echo.HandlerFunc {
 
 		token := c.Request().Header.Get(echo.HeaderAuthorization)
 		if token == "" {
-			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, "token")})
+			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, echo.HeaderAuthorization)})
 		}
 		service := c.Request().Header.Get(HeaderService)
 		if service == "" {
-			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, "service")})
+			return c.JSON(http.StatusBadRequest, &ErrContent{http.StatusBadRequest, fmt.Sprintf(IsEmpty, HeaderService)})
 		}
 
 		//check if the API Key exist
@@ -136,7 +136,8 @@ func (a *API) Authenticate() echo.HandlerFunc {
 		}
 
 		// Error performing user authentication
-		if err := a.Ldap.Authenticate(o.Username, o.Password); err != nil {
+		name, err := a.Ldap.Authenticate(o.Username, o.Password)
+		if err != nil {
 			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusInternalServerError, err.Error()})
 		}
 		// Close LDAP connection
@@ -157,7 +158,7 @@ func (a *API) Authenticate() echo.HandlerFunc {
 		}
 
 		// 1 - GENERATE TOKEN
-		tkObj := &sec.TokenClaims{Username: o.Username, Service: o.Service, Groups: gr}
+		tkObj := &sec.TokenClaims{Username: o.Username, Service: o.Service, Groups: gr, Name: name}
 		tokenString, err := a.Secure.CreateToken(tkObj, cipherKey)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, &ErrContent{http.StatusInternalServerError, err.Error()})

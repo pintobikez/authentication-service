@@ -20,21 +20,37 @@ func Register(c *cli.Context) error {
 	}
 	redisC := redis.New(redisCnf)
 
-	// Try to find the service key, if already exists
 	sName := c.String("service")
 	if sName == "" {
 		printErrorAndExit(fmt.Errorf("Flag service must be specified"))
 	}
 
+	add := true
+	if len(c.Args()) > 0 && c.Args()[0] == "remove" {
+		add = false
+	}
+
+	// Try to find the service key, if already exists
 	k := fmt.Sprintf(redisCnf.APIKey, sName)
-	fmt.Printf("%s \n", k)
 	v, err := redisC.FindString(k)
 	if err != nil {
 		printErrorAndExit(err)
 	}
 
-	if v != "" {
+	if v != "" && add {
 		printAndExit(fmt.Sprintf("Existant API KEY for service %s: %s", sName, v))
+	}
+
+	// Found and is to Delete
+	if !add {
+		if v != "" {
+			if err := redisC.DeleteKey(k); err != nil {
+				printErrorAndExit(err)
+			}
+			printAndExit(fmt.Sprintf("API KEY %s deleted for service %s", v, sName))
+		} else {
+			printAndExit(fmt.Sprintf("API KEY doesn't exist for service: %s", sName))
+		}
 	}
 
 	// Not found lets create a Key and return it
