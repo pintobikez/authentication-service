@@ -7,8 +7,7 @@ APP_VERSION=0.0.1
 LDFLAGS=--ldflags '-X main.version=${APP_VERSION} -X main.appName=${APP_NAME} -extldflags "-static" -w'
 OS=linux
 
-DOCKER_NS=gfgit
-DOCKER_IMAGE=gfgit/golang-ci:1.8.3
+DOCKER_IMAGE=golang:1.9-alpine
 
 .DEFAULT_GOAL := build
 
@@ -55,7 +54,7 @@ endif
 
 pack: depend
 	@command -v docker > /dev/null 2>&1 || ( echo "Please install Docker https://docs.docker.com/engine/installation/" && exit 1 )
-	@docker build -t ${DOCKER_NS}/${APP_NAME}:${APP_VERSION} --build-arg APP_NAME=${APP_NAME} -f ./Dockerfile .
+	@docker build -t ${APP_NAME}:${APP_VERSION} --build-arg APP_NAME=${APP_NAME} -f ./Dockerfile .
 
 test:
 ifeq (${RUN},docker)

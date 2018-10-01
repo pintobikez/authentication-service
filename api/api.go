@@ -79,19 +79,19 @@ func (a *API) Validate() echo.HandlerFunc {
 		// 1 - VALIDATE TOKEN
 		tkObj, err := a.Secure.ValidateToken(token, cipherKey)
 		if err != nil {
-			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusNotFound, err.Error()})
+			return c.JSON(http.StatusUnauthorized, &ErrContent{http.StatusUnauthorized, err.Error()})
 		}
 
 		//Validate data consistency
 		if tkObj.Service != service {
-			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusNotFound, fmt.Sprintf(TokenInvalid)})
+			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusForbidden, fmt.Sprintf(TokenInvalid)})
 		}
 
 		//2 - Refresh the TTL in Redis
 		key := fmt.Sprintf(a.Redis.GetConfig().TokenKey, tkObj.Username, service, token)
 		err = a.Redis.CreateKey(key, tkObj)
 		if err != nil {
-			return c.JSON(http.StatusForbidden, &ErrContent{http.StatusNotFound, err.Error()})
+			return c.JSON(http.StatusInternalServerError, &ErrContent{http.StatusInternalServerError, err.Error()})
 		}
 
 		return c.NoContent(http.StatusOK)

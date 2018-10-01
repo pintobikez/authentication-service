@@ -15,7 +15,6 @@ type ClientI interface {
 	CreateString(key string, value string) error
 	CreateKey(key string, s *sec.TokenClaims) error
 	DeleteKey(key string) error
-	FindKey(key string, s *sec.TokenClaims) error
 	FindString(key string) (string, error)
 	GetConfig() *cnf.RedisConfig
 	Health() error

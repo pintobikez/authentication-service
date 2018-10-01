@@ -13,10 +13,11 @@ type Client struct {
 	Config *cnf.LDAPConfig
 	IsBind bool
 	UserDN string
+	IsMock bool
 }
 
 func New(c *cnf.LDAPConfig) *Client {
-	return &Client{Conn: nil, IsBind: false, Config: c}
+	return &Client{Conn: nil, IsBind: false, Config: c, IsMock: false}
 }
 
 // Connect connects to the ldap backend.
@@ -72,6 +73,11 @@ func (lc *Client) Close() {
 
 // Authenticate authenticates the user against the ldap backend.
 func (lc *Client) Authenticate(username, password string) (string, error) {
+
+	if lc.IsMock {
+		return "mock", nil
+	}
+
 	if lc.Conn != nil {
 		err := lc.Connect()
 		if err != nil {
@@ -111,6 +117,10 @@ func (lc *Client) Authenticate(username, password string) (string, error) {
 // GetGroupsOfUser returns the group for a user.
 func (lc *Client) GetGroupsOfUser(username string) (map[string]string, error) {
 
+	if lc.IsMock {
+		return map[string]string{"MOCK": "MOCK"}, nil
+	}
+
 	if !lc.IsBind {
 		return nil, fmt.Errorf("User %s is not Binded, please Login first", username)
 	}
@@ -149,6 +159,10 @@ func (lc *Client) GetGroupsOfUser(username string) (map[string]string, error) {
 
 // Health Endpoint of the Client
 func (lc *Client) Health() error {
+
+	if lc.IsMock {
+		return nil
+	}
 
 	if lc.Config == nil {
 		return fmt.Errorf("LDAP Config file not loaded")

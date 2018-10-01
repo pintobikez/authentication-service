@@ -16,15 +16,18 @@ func New(c *cnf.RedisConfig) *Client {
 	return &Client{Config: c}
 }
 
+// GetConfig retrieves the Redis Configuration
 func (r *Client) GetConfig() *cnf.RedisConfig {
 	return r.Config
 }
 
+// Connect to the Redis server
 func (r *Client) Connect() (redis.Conn, error) {
 	s, err := redis.Dial(r.Config.Mode, fmt.Sprintf("%s:%d", r.Config.Host, r.Config.Port))
 	return s, err
 }
 
+// DeleteKey deletes the given Key from Redis
 func (r *Client) DeleteKey(key string) error {
 
 	c, err := r.Connect()
@@ -34,7 +37,7 @@ func (r *Client) DeleteKey(key string) error {
 	}
 	defer c.Close()
 
-	// delete KEY to Redis
+	// delete KEY on Redis
 	_, err = c.Do("DEL", key)
 	if err != nil {
 		return err
@@ -43,28 +46,7 @@ func (r *Client) DeleteKey(key string) error {
 	return nil
 }
 
-func (r *Client) FindKey(key string, s *sec.TokenClaims) error {
-
-	c, err := r.Connect()
-	// Error connecting to redis
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
-	reply, err := c.Do("GET", key)
-	// Error retrieving key from redis
-	if err != nil || reply == nil {
-		return err
-	}
-
-	if err = json.Unmarshal(reply.([]byte), &s); err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// CreateKey creates a key on Redis with the given TokenClaim
 func (r *Client) CreateKey(key string, s *sec.TokenClaims) error {
 
 	c, err := r.Connect()
@@ -113,6 +95,7 @@ func (r *Client) FindString(key string) (string, error) {
 	return string(reply.([]byte)), nil
 }
 
+// Health Endpoint of the Client
 func (r *Client) CreateString(key string, value string) error {
 
 	c, err := r.Connect()

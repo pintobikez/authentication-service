@@ -66,20 +66,6 @@ func (c *ClientRedisTest) FindString(key string) (string, error) {
 func (c *ClientRedisTest) CreateString(key string, value string) error {
 	return nil
 }
-func (c *ClientRedisTest) FindKey(key string, s *TokenClaims) error {
-	if c.Iserror {
-		return fmt.Errorf("error in finding key")
-	}
-	if c.IserrorUser {
-		s.Username = ""
-		return nil
-	}
-
-	s.Username = "T"
-	s.Service = "T"
-
-	return nil
-}
 func (c *ClientRedisTest) CreateKey(key string, s *TokenClaims) error {
 	if c.IserrorCreate == true {
 		return fmt.Errorf("error in creating key")

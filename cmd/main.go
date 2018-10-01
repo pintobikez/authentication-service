@@ -83,6 +83,11 @@ func main() {
 			Usage:  "Define SSL key to accept HTTPS requests",
 			EnvVar: "SSL_KEY",
 		},
+		cli.BoolFlag{
+			Name:   "ldap-override, noldap",
+			Usage:  "If LDAP check is to always return true",
+			EnvVar: "LDAP_OVERRIDE",
+		},
 	}
 
 	app.Commands = []cli.Command{
@@ -111,15 +116,3 @@ func main() {
 
 	app.Run(os.Args)
 }
-
-/*
-	Subcommands: []cli.Command{
-		{
-			Name:  "add",
-			Usage: "add a key",
-		},
-		{
-			Name:  "remove",
-			Usage: "remove a key",
-		},
-	},*/

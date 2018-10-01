@@ -1,12 +1,8 @@
 swagger: '2.0'
 info:
-  description: Authentication service is a small app to check if a user can login in Dafiti's LDAP
+  description: Authentication service is a small app to check if a user can login in Corporate LDAP
   version: 0.0.1
   title: Authentication Service
-externalDocs:
-  description: You can read more about the project in Confluence
-  url: 'https://dafiti.jira.com/wiki/display/DFTEC/Authentication'
-host: authentication.dafiti.io
 tags:
   - name: health
     description: Healthcheck information

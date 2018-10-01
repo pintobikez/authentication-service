@@ -61,16 +61,21 @@ func Handler(c *cli.Context) error {
 		instrument = new(inst.NewRelic)
 	}
 
-	//loads ldap config
+	//loads ldap config if not to override LDAP
+	ldapC := &ldap.Client{}
 
-	err := uti.LoadConfigFile(c.String("ldap-file"), ldapCnf)
-	if err != nil {
-		e.Logger.Fatal(err)
+	if !c.Bool("ldap-override") {
+		err := uti.LoadConfigFile(c.String("ldap-file"), ldapCnf)
+		if err != nil {
+			e.Logger.Fatal(err)
+		}
+		ldapC = ldap.New(ldapCnf)
+	} else {
+		ldapC.IsMock = true
 	}
-	ldapC := ldap.New(ldapCnf)
 
 	//loads security config
-	err = uti.LoadConfigFile(c.String("security-file"), secCnf)
+	err := uti.LoadConfigFile(c.String("security-file"), secCnf)
 	if err != nil {
 		e.Logger.Fatal(err)
 	}

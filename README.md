@@ -11,7 +11,7 @@ App requires Golang 1.8 or later, Glide Package Manager and Docker (for building
 ## Installation
 - Install [Golang](https://golang.org/doc/install)
 - Install [Glide](https://glide.sh)
-- Install [Docker](htts://docker.com)
+- Install [Docker](https://docker.com)
 
 
 ## Build
@@ -45,9 +45,6 @@ $ make depend
 // Create a docker image with application
 $ make pack
 
-// Pack with custom Docker namespace. Default gfgit
-$ make DOCKER_NS=gfgit pack
-
 // Pack with custom version.
 $ make APP_VERSION=0.1.0 pack
 
@@ -55,7 +52,7 @@ $ make APP_VERSION=0.1.0 pack
 $ make APP_NAME=authentication-service pack
 
 // Pack passing all flags
-$ make APP_NAME=authentication-service-docker APP_VERSION=0.1.0 DOCKER_NS=gfgit pack
+$ make APP_NAME=authentication-service-docker APP_VERSION=0.1.0
 ```
 
 ## Development
@@ -71,9 +68,24 @@ $ make test-report
 ```
 
 ## Run it
+Build it
 ```
-// Run and launch docker
-$ make build; docker build -t authentication-service-docker .; docker-compose up;
+$ make build
+```
+Launch redis:
+```
+$ docker run --name redis-auth -d redis
+
+```
+Run the service with LDAP:
+```
+$ ./build/authentication-service --rf core.redisconfig.yml.example --sf core.securityconfig.yml.example --secf core.ldapconfig.yml.example --listen 0.0.0.0:8081
+
+```
+Run the service with Mocked LDAP (note that the GROUP_TO_CHECK in the login call must be: mock):
+```
+$ ./build/authentication-service --rf core.redisconfig.yml.example --sf core.securityconfig.yml.example --listen 0.0.0.0:8081 --noldap
+
 ```
 
 ## Configuration:
@@ -83,17 +95,22 @@ There are 3 files used for configuration:
 - REDIS_FILE: REDIS connection configuration
 
 ## Usage:
-The Caller API must send a plain text password with the service name that was previously registered in the authentication service.
 
 # Register a service:
 Run in the server terminal the following
 ```
-$ ./BUILD_PATH/authentication-service register --service SERVICENAME_CALLING_AUTH
+$ ./BUILD_PATH/authentication-service register --service SERVICENAME_CALLING_AUTH --redis-file REDIS_CONFIG_FILE
+```
+
+# Delete a service:
+Run in the server terminal the following
+```
+$ ./BUILD_PATH/authentication-service register remove --service SERVICENAME_CALLING_AUTH --redis-file REDIS_CONFIG_FILE
 ```
 
 # Perform User Login
 ```
-curl -v -X POST http://127.0.0.1:8080/authenticate -H 'content-type:application/json' -d '{"username":"USERNAME","password":"USER_CIPHERED_PASSWORD","service":"SERVICENAME_CALLING_AUTH","groups":["GROUP_TO_CHECK"]}'
+curl -v -X POST http://127.0.0.1:8080/authenticate -H 'content-type:application/json' -d '{"username":"USERNAME","password":"USER_PASSWORD","service":"SERVICENAME_CALLING_AUTH","groups":["GROUP_TO_CHECK"]}'
 ```
 # Check User Login
 ```

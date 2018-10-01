@@ -48,15 +48,15 @@ type validateProvider struct {
 }
 
 var testValidateProvider = []validateProvider{
-	{echo.POST, "/validate", "", "", "", http.StatusBadRequest},       // token empty
-	{echo.POST, "/validate", "", "A", "", http.StatusBadRequest},      // service empty
-	{echo.POST, "/validate", "rdis", "C", "A", http.StatusForbidden},  // redis key not found
-	{echo.POST, "/validate", "token", "T", "T", http.StatusForbidden}, // validate token error
-	{echo.POST, "/validate", "user", "T", "T", http.StatusForbidden},  // validate consistency error
-	{echo.POST, "/validate", "", "T", "T", http.StatusForbidden},      // validate token error
-	{echo.POST, "/validate", "keyc", "V", "V", http.StatusForbidden},  // error creating key in redis
-	{echo.POST, "/validate", "apit", "T", "V", http.StatusForbidden},  // API Key not found
-	{echo.POST, "/validate", "", "T", "V", http.StatusOK},             // OK
+	{echo.POST, "/validate", "", "", "", http.StatusBadRequest},                // token empty
+	{echo.POST, "/validate", "", "A", "", http.StatusBadRequest},               // service empty
+	{echo.POST, "/validate", "rdis", "C", "A", http.StatusForbidden},           // redis key not found
+	{echo.POST, "/validate", "token", "T", "T", http.StatusUnauthorized},       // validate token error
+	{echo.POST, "/validate", "user", "T", "T", http.StatusForbidden},           // validate consistency error
+	{echo.POST, "/validate", "", "T", "T", http.StatusForbidden},               // validate token error
+	{echo.POST, "/validate", "keyc", "V", "V", http.StatusInternalServerError}, // error creating key in redis
+	{echo.POST, "/validate", "apit", "T", "V", http.StatusForbidden},           // API Key not found
+	{echo.POST, "/validate", "", "T", "V", http.StatusOK},                      // OK
 }
 
 /*
