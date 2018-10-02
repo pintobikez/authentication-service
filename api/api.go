@@ -18,7 +18,7 @@ type API struct {
 }
 
 const (
-	HeaderService        = "AuthorizationRequestBy"
+	HeaderService        = "Requester"
 	ErrorUserNotInGroups = "None of the User Groups are valid"
 	StatusAvailable      = "Available"
 	StatusUnavailable    = "Unavailable"
